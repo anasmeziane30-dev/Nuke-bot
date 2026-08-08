@@ -18,65 +18,50 @@ def run_flask():
 
 # ---------- إعداد البوت ----------
 intents = discord.Intents.default()
-intents.message_content = True
+intents.message_content = True   # مهم جداً
 intents.members = True
 
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-# ---------- حدث تشغيل البوت ----------
 @bot.event
 async def on_ready():
     print(f'✅ البوت متصل كـ {bot.user}')
     print(f'✅ موجود في {len(bot.guilds)} سيرفر')
-    await bot.change_presence(activity=discord.Game(name="!ping | !nuke"))
+    await bot.change_presence(activity=discord.Game(name="!nuke | !ping"))
 
-# ---------- حدث استقبال الرسائل (للتشخيص) ----------
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
         return
-    print(f"📩 رسالة من {message.author}: {message.content}")
+    print(f'📩 رسالة من {message.author}: {message.content}')
     await bot.process_commands(message)
 
-# ---------- الأمر: ping ----------
+# ---------- أمر اختبار ----------
 @bot.command()
 async def ping(ctx):
-    await ctx.send("🏓 بونغ! البوت يعمل.")
+    await ctx.send('🏓 Pong! البوت يعمل.')
 
-# ---------- الأمر: test ----------
+# ---------- أمر nuke (نسخة مبسطة) ----------
 @bot.command()
-async def test(ctx):
-    perms = ctx.channel.permissions_for(ctx.guild.me)
-    msg = (
-        "🔧 **صلاحياتي هنا:**\n"
-        f"• قراءة الرسائل: {'✅' if perms.read_messages else '❌'}\n"
-        f"• إرسال الرسائل: {'✅' if perms.send_messages else '❌'}\n"
-        f"• إدارة القنوات: {'✅' if perms.manage_channels else '❌'}\n"
-        f"• طرد الأعضاء: {'✅' if perms.kick_members else '❌'}\n"
-        f"• حظر الأعضاء: {'✅' if perms.ban_members else '❌'}"
-    )
-    await ctx.send(msg)
-
-# ---------- الأمر: nuke (نسخة مبسطة للاختبار) ----------
-@bot.command()
+@commands.has_permissions(administrator=True)
 async def nuke(ctx):
-    await ctx.send("⚡ تم استقبال أمر nuke! سيتم تنفيذ التخريب...")
-    # سيتم إضافة الكود الكامل لاحقاً بعد التأكد من عمل البوت
+    await ctx.send('💀 جارٍ تنفيذ التخريب... (نسخة تجريبية)')
+    # سيتم إضافة الكود الكامل لاحقاً
 
 # ---------- تشغيل البوت في خلفية (Thread) ----------
 def run_bot():
     token = os.environ.get('DISCORD_TOKEN')
     if not token:
-        print("❌ لم يتم العثور على DISCORD_TOKEN!")
+        print('❌ لم يتم العثور على DISCORD_TOKEN!')
         return
     bot.run(token)
 
 # ---------- عند تشغيل الملف ----------
 if __name__ == "__main__":
-    # تشغيل البوت في thread منفصل
+    # 1. تشغيل البوت في Thread منفصل
     bot_thread = Thread(target=run_bot)
-    bot_thread.daemon = True  # ينتهي تلقائياً عند إغلاق البرنامج
+    bot_thread.daemon = True
     bot_thread.start()
-    
-    # تشغيل خادم Flask (الذي سيديره gunicorn)
+
+    # 2. تشغيل خادم Flask (الذي سيديره gunicorn)
     run_flask()
