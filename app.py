@@ -16,12 +16,12 @@ def run_flask():
     port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port)
 
-# ---------- إعداد البوت ----------
+# ---------- إعداد البوت (تعطيل الأمر help الافتراضي) ----------
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 
-bot = commands.Bot(command_prefix='!', intents=intents)
+bot = commands.Bot(command_prefix='!', intents=intents, help_command=None)
 
 # ---------- حدث التشغيل ----------
 @bot.event
@@ -38,7 +38,7 @@ async def on_message(message):
     print(f'📩 رسالة من {message.author}: {message.content}')
     await bot.process_commands(message)
 
-# ---------- أمر مساعدة ----------
+# ---------- أمر help المخصص ----------
 @bot.command()
 async def help(ctx):
     embed = discord.Embed(
@@ -51,12 +51,12 @@ async def help(ctx):
     embed.add_field(name="!nuke", value="تخريب السيرفر (يتطلب صلاحية Administrator)", inline=False)
     await ctx.send(embed=embed)
 
-# ---------- أمر اختبار ping ----------
+# ---------- أمر ping ----------
 @bot.command()
 async def ping(ctx):
     await ctx.send('🏓 Pong! البوت يعمل.')
 
-# ---------- أمر اختبار test ----------
+# ---------- أمر test ----------
 @bot.command()
 async def test(ctx):
     perms = ctx.channel.permissions_for(ctx.guild.me)
