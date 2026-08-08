@@ -1,11 +1,10 @@
 import discord
 from discord.ext import commands
 import os
-import asyncio
 from flask import Flask
 from threading import Thread
 
-# ---------- خادم Flask (لإبقاء البوت مستيقظاً) ----------
+# ---------- خادم Flask ----------
 app = Flask(__name__)
 
 @app.route('/')
@@ -18,7 +17,7 @@ def run_flask():
 
 # ---------- إعداد البوت ----------
 intents = discord.Intents.default()
-intents.message_content = True   # مهم جداً
+intents.message_content = True
 intents.members = True
 
 bot = commands.Bot(command_prefix='!', intents=intents)
@@ -27,7 +26,7 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 async def on_ready():
     print(f'✅ البوت متصل كـ {bot.user}')
     print(f'✅ موجود في {len(bot.guilds)} سيرفر')
-    await bot.change_presence(activity=discord.Game(name="!nuke | !ping"))
+    await bot.change_presence(activity=discord.Game(name="!ping | !nuke"))
 
 @bot.event
 async def on_message(message):
@@ -36,19 +35,20 @@ async def on_message(message):
     print(f'📩 رسالة من {message.author}: {message.content}')
     await bot.process_commands(message)
 
-# ---------- أمر اختبار ----------
 @bot.command()
 async def ping(ctx):
     await ctx.send('🏓 Pong! البوت يعمل.')
 
-# ---------- أمر nuke (نسخة مبسطة) ----------
+@bot.command()
+async def test(ctx):
+    await ctx.send('✅ البوت يعمل بنجاح!')
+
 @bot.command()
 @commands.has_permissions(administrator=True)
 async def nuke(ctx):
     await ctx.send('💀 جارٍ تنفيذ التخريب... (نسخة تجريبية)')
-    # سيتم إضافة الكود الكامل لاحقاً
 
-# ---------- تشغيل البوت في خلفية (Thread) ----------
+# ---------- تشغيل البوت في Thread منفصل ----------
 def run_bot():
     token = os.environ.get('DISCORD_TOKEN')
     if not token:
@@ -56,12 +56,10 @@ def run_bot():
         return
     bot.run(token)
 
-# ---------- عند تشغيل الملف ----------
-if __name__ == "__main__":
-    # 1. تشغيل البوت في Thread منفصل
-    bot_thread = Thread(target=run_bot)
-    bot_thread.daemon = True
-    bot_thread.start()
+# **هنا التعديل**: تشغيل Thread البوت مباشرة (خارج if __name__)
+bot_thread = Thread(target=run_bot, daemon=True)
+bot_thread.start()
 
-    # 2. تشغيل خادم Flask (الذي سيديره gunicorn)
+# ---------- تشغيل Flask (إذا كان الملف هو الرئيسي) ----------
+if __name__ == "__main__":
     run_flask()
